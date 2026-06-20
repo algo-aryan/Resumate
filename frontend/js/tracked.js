@@ -11,7 +11,7 @@ const userId = localStorage.getItem("userId");
  return;
  }
 
- const res = await fetch(`https://resumate-ewtu.onrender.com/api/tracked-internships/${userId}`);
+ const res = await fetch(`/api/tracked-internships/${userId}`);
  if (!res.ok) {
  throw new Error(`HTTP error! status: ${res.status}`);
  }
@@ -71,7 +71,7 @@ const userId = localStorage.getItem("userId");
  if (!confirmDelete) return;
 
  try {
- const res = await fetch(`https://resumate-ewtu.onrender.com/api/untrack-internship/${id}`, {
+ const res = await fetch(`/api/untrack-internship/${id}`, {
  method: "DELETE",
  });
 

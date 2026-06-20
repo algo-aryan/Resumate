@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
  
  try {
  // Send the login request to the server
- const res = await fetch("https://resumate-ewtu.onrender.com/api/login", {
+ const res = await fetch("/api/login", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify({ email, password })

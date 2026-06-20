@@ -178,7 +178,7 @@ def check_eligible(link):
         "Referer": "https://www.google.com/"
     }
     try:
-        response = requests.get(link, headers=headers)
+        response = requests.get(link, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
         button = soup.find(lambda tag: tag.name == 'button' and tag.text and 'apply now' in tag.text.lower())
         if not button: return False
@@ -209,7 +209,7 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
     eligible_internships_for_scoring = []
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
         log_to_csv("Scraping Started", f"URL: {url}")
 
@@ -259,7 +259,7 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
         try:
             sys.stderr.write(f"Processing ATS for: {job_data['title']} at {job_data['company']} ({i+1}/{min(len(eligible_internships_for_scoring), num_to_score)})\n")
             
-            job_resp = requests.get(job_data["link"], headers=headers)
+            job_resp = requests.get(job_data["link"], headers=headers, timeout=10)
             job_soup = BeautifulSoup(job_resp.text, "html.parser")
             jd_div = job_soup.find("div", class_="internship_details")
             job_desc = jd_div.get_text(strip=True) if jd_div else ""

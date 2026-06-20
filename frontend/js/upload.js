@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
  formData.append("resume", file);
 
  try {
- const res = await fetch(`https://resumate-ewtu.onrender.com/api/upload`, {
+ const res = await fetch(`/api/resume/upload`, {
  method: "POST",
  body: formData
  });
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
  };
  
  try {
- const response = await fetch("https://resumate-ewtu.onrender.com/api/track-internship", {
+ const response = await fetch("/api/track-internship", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify(internshipData)
