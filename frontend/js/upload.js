@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
  if (res.status === 429) {
  uploadErrorDisplay.innerText = "AI assistant is currently unavailable due to quota limits. Please try again later.";
  } else {
- uploadErrorDisplay.innerText = `Error processing resume: ${errorData.message || "Unknown error."}`;
+ uploadErrorDisplay.innerText = `Error processing resume: ${errorData.reason || errorData.error || errorData.message || "Unknown error."}`;
  }
  uploadErrorDisplay.style.display = 'block';
  
