@@ -675,6 +675,9 @@
  <span id="file-name-display" class="file-input-display">No file chosen</span>
  <input class="form-control" type="file" id="resume" name="resume" accept="application/pdf" required>
  </div>
+ <div class="mb-4">
+ <label for="jobDescription" class="form-label">Job Description (Optional, for specific match):</label>
+ <textarea class="form-control" id="jobDescription" name="jobDescription" rows="4" placeholder="Paste the job description here to evaluate your resume against it..." style="background-color: var(--glass-overlay); color: var(--text-body); border-color: var(--border-color);"></textarea>
  </div>
  <button type="submit" class="btn btn-primary">
  <span class="button-text">Get ATS Score</span>
@@ -738,6 +741,10 @@
 
  const formData = new FormData();
  formData.append('resume', file);
+ const jdText = document.getElementById('jobDescription').value;
+ if (jdText) {
+     formData.append('jobDescription', jdText);
+ }
 
  try {
  const res = await fetch('https://resumate-ewtu.onrender.com/api/ats-score', {

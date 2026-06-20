@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 // Only import GoogleGenerativeAI directly. Error types are accessed via its instances or error.name/message.
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { exec } from 'child_process';
 
 const router = express.Router();
 dotenv.config();
@@ -22,7 +23,7 @@ GlobalWorkerOptions.standardFontDataUrl = path.resolve(
 );
 
 
-const upload = multer({ dest: 'backend/uploads/' });
+const upload = multer({ dest: 'uploads/' }); // Changed from backend/uploads/ to uploads/ for consistency
 
 // Text extraction function
 async function extractTextFromPDF(pdfPath) {
@@ -72,50 +73,78 @@ Resume:
 // Main ATS score route
 router.post('/ats-score', upload.single('resume'), async (req, res) => {
  // Define resumePath here so it's accessible in the finally block
- const resumePath = req.file ? req.file.path : null; 
+ const resumePath = req.file ? path.resolve(__dirname, '../', req.file.path) : null; 
+ const jobDescription = req.body.jobDescription;
 
  try {
  if (!resumePath) {
  return res.status(400).json({ error: "No resume file uploaded.", reason: "Please upload a PDF file." });
  }
 
- console.log("📥 Received ATS score request");
+ console.log("Received ATS score request");
  console.log("Uploaded file path:", resumePath);
 
- const resumeText = await extractTextFromPDF(resumePath);
-
  let geminiResponse;
- try {
- geminiResponse = await getATSScore(resumeText);
- console.log("🔍 Gemini raw response:\n", geminiResponse); 
- } catch (geminiError) {
- console.error("Gemini API call failed for ATS score:", geminiError);
 
- // --- START OF MODIFIED ERROR HANDLING (using error.name and error.message string checks) ---
- // Check if the error message indicates a 429 Too Many Requests (quota issue)
- if (geminiError.message && geminiError.message.includes('429 Too Many Requests') && 
- geminiError.message.includes('quota')) {
- return res.status(429).json({
- error: "AI assistant is currently unavailable due to quota limits.",
- reason: "Gemini API quota exceeded. Please try again later."
- });
- } 
- // Check for specific error names that might indicate API issues
- else if (geminiError.name === 'ResourceExhaustedError' || geminiError.name === 'GoogleGenerativeAIError') {
- // Even if 'instanceof' fails, 'name' property should be a string
- return res.status(500).json({
- error: "AI assistant encountered an API error.",
- reason: geminiError.message || "An unspecified Google Generative AI error occurred."
- });
- }
- // Generic error for any other unexpected errors during Gemini call
- else {
- return res.status(500).json({
- error: "Failed to get ATS score from AI assistant.",
- reason: geminiError.message || "An unexpected error occurred during AI processing."
- });
- }
- // --- END OF MODIFIED ERROR HANDLING ---
+ if (jobDescription && jobDescription.trim().length > 0) {
+     console.log("Evaluating against provided Job Description using ats_matcher.py...");
+     const pythonPath = 'python3';
+     const scriptPath = path.resolve(__dirname, '../ats_matcher.py');
+     
+     geminiResponse = await new Promise((resolve, reject) => {
+         const child = exec(`"${pythonPath}" "${scriptPath}" "${resumePath}"`, {
+            env: { ...process.env }
+         }, (err, stdout, stderr) => {
+             if (err) {
+                 console.error("ats_matcher.py execution error:", err);
+                 console.error("ats_matcher.py stderr:", stderr);
+                 reject(new Error(stdout || stderr || err.message));
+             } else {
+                 resolve(stdout);
+             }
+         });
+         child.stdin.write(jobDescription);
+         child.stdin.end();
+     });
+     
+     // Check if python script returned a specific error JSON
+     try {
+         const parsedPythonErr = JSON.parse(geminiResponse);
+         if (parsedPythonErr.error) {
+             console.error("Python script returned error JSON:", parsedPythonErr);
+             return res.status(500).json({ error: "AI assistant encountered an error.", reason: parsedPythonErr.message });
+         }
+     } catch (e) {
+         // Not JSON or not an error JSON, proceed
+     }
+ } else {
+     const resumeText = await extractTextFromPDF(resumePath);
+     try {
+         geminiResponse = await getATSScore(resumeText);
+         console.log("Gemini raw response:\n", geminiResponse); 
+     } catch (geminiError) {
+         console.error("Gemini API call failed for ATS score:", geminiError);
+    
+         if (geminiError.message && geminiError.message.includes('429 Too Many Requests') && 
+         geminiError.message.includes('quota')) {
+         return res.status(429).json({
+         error: "AI assistant is currently unavailable due to quota limits.",
+         reason: "Gemini API quota exceeded. Please try again later."
+         });
+         } 
+         else if (geminiError.name === 'ResourceExhaustedError' || geminiError.name === 'GoogleGenerativeAIError') {
+         return res.status(500).json({
+         error: "AI assistant encountered an API error.",
+         reason: geminiError.message || "An unspecified Google Generative AI error occurred."
+         });
+         }
+         else {
+         return res.status(500).json({
+         error: "Failed to get ATS score from AI assistant.",
+         reason: geminiError.message || "An unexpected error occurred during AI processing."
+         });
+         }
+     }
  }
 
  // Try to extract JSON block safely even if Gemini adds markdown
@@ -124,7 +153,6 @@ router.post('/ats-score', upload.single('resume'), async (req, res) => {
 
  try {
  const parsed = JSON.parse(rawJSON);
- // File cleanup is now in finally block
  return res.status(200).json({
  score: parsed.score || 0,
  summary: parsed.summary || 'No summary.',
@@ -134,8 +162,6 @@ router.post('/ats-score', upload.single('resume'), async (req, res) => {
  });
  } catch (jsonErr) {
  console.warn("Could not parse JSON response from Gemini for ATS score:", jsonErr);
- // File cleanup is now in finally block
- // This is a server-side issue if Gemini didn't return valid JSON
  return res.status(500).json({ 
  error: "Invalid AI response format.",
  reason: "AI response was not in expected JSON format. Please try again."
@@ -144,7 +170,7 @@ router.post('/ats-score', upload.single('resume'), async (req, res) => {
 
  } catch (err) {
  // This outer catch handles errors like PDF parsing failures or file system issues
- console.error("General ATS error (outside Gemini API call):", err);
+ console.error("General ATS error:", err);
  return res.status(500).json({
  error: "Resume processing failed",
  reason: err.message
