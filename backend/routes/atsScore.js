@@ -17,7 +17,7 @@ const upload = multer({ dest: 'uploads/' });
 // Extract text from PDF using Gemini exactly like main-2.py
 async function extractTextFromPDFGemini(pdfPath) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
     
     const pdfData = fs.readFileSync(pdfPath).toString('base64');
     const prompt = `Extract all text content from this PDF document.
@@ -39,7 +39,7 @@ Focus on preserving the original structure and content of the resume.`;
 // Get ATS Score using Gemini exactly like main-2.py
 async function getATSScore(resumeText) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
     const prompt = `You are an ATS (Applicant Tracking System) analyzer. Analyze the following resume and provide a comprehensive assessment.
 Resume Text:
@@ -65,6 +65,7 @@ Keep strengths and suggestions concise and actionable.`;
 
 // Main ATS score route
 router.post('/ats-score', upload.single('resume'), async (req, res) => {
+    console.log("Using API Key length:", process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : 'undefined');
     const resumePath = req.file ? path.resolve(__dirname, '../', req.file.path) : null; 
 
     try {
