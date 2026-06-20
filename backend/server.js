@@ -126,7 +126,7 @@ app.use('/api', atsScoreRoute);
 // Serve static files from the frontend directory
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-app.get('*', (req, res) => {
+app.use((req, res) => {
   console.log(`[DEBUG] Catch-all route hit for ${req.originalUrl}. Sending index.html from:`, path.join(__dirname, '../frontend/index.html'));
   res.sendFile(path.join(__dirname, '../frontend/index.html'), (err) => {
     if (err) {
