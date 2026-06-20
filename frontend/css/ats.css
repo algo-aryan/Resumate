@@ -262,6 +262,7 @@
     height: 100%;
     opacity: 0;
     cursor: pointer;
+    z-index: 10;
   }
   
   .form-hint {
