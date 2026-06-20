@@ -19,7 +19,7 @@ from google.api_core.exceptions import ResourceExhausted, GoogleAPIError, Aborte
 # Load environment and configure Gemini
 load_dotenv()
 genai.configure(
- api_key=os.getenv("GOOGLE_API_KEY")
+ api_key=os.getenv("GEMINI_API_KEY")
 )
 
 # Ensure NLTK stopwords are available

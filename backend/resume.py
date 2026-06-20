@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted, GoogleAPIError
 
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
 # Assuming you have a separate file for GitHub logic, e.g., github_service.py
 # If not, you would place the fetch_github_projects function here.
 # For this example, let's simulate the function and its potential errors.
@@ -72,7 +75,7 @@ Projects: {', '.join([f"{p['title']} - {p['description']}" for p in projects])}
 Start directly with the summary. Do not repeat the inputs.
 """
  try:
- model = genai.GenerativeModel("models/gemini-1.5-flash-latest")
+ model = genai.GenerativeModel("models/gemini-flash-latest")
  response = model.generate_content(prompt)
  print("Gemini API Response:", response.text, file=sys.stderr)
  return [line.strip() for line in response.text.split('\n') if line.strip()][:3]
