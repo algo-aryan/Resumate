@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
  formData.append("resume", file);
 
  try {
- const res = await fetch(`/api/resume/upload`, {
+ const res = await fetch(`/api/upload`, {
  method: "POST",
  body: formData
  });
