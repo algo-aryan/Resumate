@@ -1,0 +1,173 @@
+/* ========================================================== */
+    /* ===== SAGE GREEN THEME (LIGHT ONLY) FOR LOGIN.HTML ===== */
+    /* ========================================================== */
+
+    /* --- Default & Only Theme: Sage Green --- */
+    :root {
+      /* Colors */
+      --primary-bg: #F8FAF9; /* Very Light Mint */
+      --secondary-bg: #FFFFFF; /* Pure White */
+      --accent-main: #6B8E6B; /* Sage Green */
+      --accent-main-hover: #5B7A5B;
+      --text-header: #2C3E32; /* Dark Sage */
+      --text-body: #5A6B5D; /* Medium Sage */
+      --text-muted: #9AA69C;
+      --border-color: rgba(90, 107, 93, 0.3);
+      --input-bg: #F8FAF9;
+      --btn-primary-text: #FFFFFF;
+      --focus-ring: rgba(107, 142, 107, 0.3);
+
+      /* Shadows */
+      --shadow-lg: 0 10px 15px -3px rgba(44, 62, 50, 0.08), 0 4px 6px -2px rgba(44, 62, 50, 0.04);
+      --shadow-xl: 0 20px 25px -5px rgba(44, 62, 50, 0.08), 0 10px 10px -5px rgba(44, 62, 50, 0.04);
+
+      /* Radius */
+      --radius-md: 10px;
+      --radius-xl: 16px;
+    }
+
+    /* --- Base & Body Styles --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--primary-bg);
+      color: var(--text-body);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    /* --- Container & Form Styles --- */
+    .container {
+      background: var(--secondary-bg);
+      border-radius: var(--radius-xl);
+      padding: 40px 50px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+      animation: fadeIn 1s ease-in-out;
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .title {
+      margin-bottom: 25px;
+      color: var(--text-header);
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .form input {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background-color: var(--input-bg);
+      color: var(--text-body);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form input:focus {
+        border-color: var(--accent-main);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .form button {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-main);
+      color: var(--btn-primary-text);
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      margin-top: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+    
+    .form button:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-xl);
+      background: var(--accent-main-hover);
+    }
+
+    .form button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.25);
+        transform: skewX(-20deg);
+        transition: transform 0.6s ease-out;
+    }
+    .form button:hover::before {
+        transform: translateX(100%) skewX(-20deg);
+    }
+    
+    .text {
+      margin-top: 25px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .text a {
+      color: var(--accent-main);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .text a:hover {
+      text-decoration: underline;
+      color: var(--accent-main-hover);
+    }
+
+    /* Spinner */
+    .spinner {
+      margin-top: 20px;
+      border: 5px solid var(--border-color);
+      border-top: 5px solid var(--accent-main);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Keyframe Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container { padding: 30px 20px; }
+      .title { font-size: 1.8rem; }
+      .form input, .form button { padding: 12px; }
+      .form button { font-size: 1rem; }
+    }
