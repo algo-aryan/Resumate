@@ -1,4 +1,4 @@
-# 📄 ResuMate – Your AI-Powered Resume & Internship Assistant
+# ResuMate – Your AI-Powered Resume & Internship Assistant
 
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![MIT License](https://img.shields.io/badge/license-MIT-blue)
@@ -12,173 +12,173 @@
 
 ---
 
-## 🚀 Features
+## Features
 
-- ✨ Gemini-powered **Resume Chatbot**
-- 📄 **PDF Resume Upload** with skill extraction
-- 🧠 **Real-time ATS Scoring & Suggestions**
-- 🔎 **Internship Matcher** scraping Internshala
-- 💸 **Stipend-based Sorting** of top 10 internships
-- 🖥️ Clean and minimal **Frontend Dashboard**
+- Gemini-powered **Resume Chatbot**
+- **PDF Resume Upload** with skill extraction
+- **Real-time ATS Scoring & Suggestions**
+- **Internship Matcher** scraping Internshala
+- **Stipend-based Sorting** of top 10 internships
+- Clean and minimal **Frontend Dashboard**
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 ResuMate/
 ├── backend/
-│   ├── backend/
-│   ├── config/
-│   ├── github/
-│   ├── models/
-│   ├── nltk_data/
-│   ├── node_modules/
-│   ├── public/
-│   ├── routes/
-│   ├── templates/
-│   ├── uploads/
-│   ├── venv/
-│   ├── .env
-│   ├── ats_matcher.py
-│   ├── debug_log.csv
-│   ├── demo.py
-│   ├── Details_csv/
-│   ├── Details_csv.csv
-│   ├── Dockerfile
-│   ├── internshp_links_apply.txt
-│   ├── internship_links.txt
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── requirements.txt
-│   ├── Resume-7.pdf
-│   ├── resume.py
-│   ├── server.js
-│   └── skill_extractor.py
+│ ├── backend/
+│ ├── config/
+│ ├── github/
+│ ├── models/
+│ ├── nltk_data/
+│ ├── node_modules/
+│ ├── public/
+│ ├── routes/
+│ ├── templates/
+│ ├── uploads/
+│ ├── venv/
+│ ├── .env
+│ ├── ats_matcher.py
+│ ├── debug_log.csv
+│ ├── demo.py
+│ ├── Details_csv/
+│ ├── Details_csv.csv
+│ ├── Dockerfile
+│ ├── internshp_links_apply.txt
+│ ├── internship_links.txt
+│ ├── package-lock.json
+│ ├── package.json
+│ ├── requirements.txt
+│ ├── Resume-7.pdf
+│ ├── resume.py
+│ ├── server.js
+│ └── skill_extractor.py
 ├── fronten/
-│   ├── ats.html
-│   ├── ats.js
-│   ├── dashboard.html
-│   ├── index.html
-│   ├── login.html
-│   ├── login.js
-│   ├── resume-builder.html
-│   ├── script.js
-│   ├── signup.html
-│   ├── signup.js
-│   ├── tracked.html
-│   └── upload.html
+│ ├── ats.html
+│ ├── ats.js
+│ ├── dashboard.html
+│ ├── index.html
+│ ├── login.html
+│ ├── login.js
+│ ├── resume-builder.html
+│ ├── script.js
+│ ├── signup.html
+│ ├── signup.js
+│ ├── tracked.html
+│ └── upload.html
 ```
 
 ---
 
-## 🛠️ Setup Instructions
+## Setup Instructions
 
-### ⚙️ Backend Setup
+### Backend Setup
 
 1. Navigate to backend folder:
-   ```bash
-   cd backend
-   npm install
-   ```
+ ```bash
+ cd backend
+ npm install
+ ```
 
 2. Create a `.env` file inside `backend/`:
 
-   ```
-   MONGO_URI=your_mongo_connection_string
-   JWT_SECRET=your_secret_key
-   ```
+ ```
+ MONGO_URI=your_mongo_connection_string
+ JWT_SECRET=your_secret_key
+ ```
 
 3. Start the backend server:
-   ```bash
-   node server.js
-   ```
+ ```bash
+ node server.js
+ ```
 
 ---
 
-### 🐍 Python Script Setup
+### Python Script Setup
 
 Make sure Python 3 is installed.
 
 1. Install dependencies:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+ ```bash
+ pip install -r requirements.txt
+ ```
 
 2. Test `skill_extractor.py` independently if needed.
 
 ---
 
-### 🌐 Frontend Setup
+### Frontend Setup
 
 1. Navigate to `fronten/` folder:
-   ```bash
-   cd fronten
-   ```
+ ```bash
+ cd fronten
+ ```
 
 2. Open `index.html` in a browser OR use Live Server extension in VSCode.
 
 ---
 
-## 📈 How It Works
+## How It Works
 
 1. User signs up and logs in
 2. Uploads resume in PDF format
 3. Backend sends it to Python script
 4. `skill_extractor.py`:
-   - Extracts skills from resume
-   - Scrapes Internshala
-   - Sorts top internships
-   - Generates `.csv` and `.txt` files
+ - Extracts skills from resume
+ - Scrapes Internshala
+ - Sorts top internships
+ - Generates `.csv` and `.txt` files
 5. Dashboard displays:
-   - Internship links
-   - ATS score
-   - Resume analysis
+ - Internship links
+ - ATS score
+ - Resume analysis
 
 ---
 
-## 🖼️ Screenshots
+## Screenshots
 
-### 🤖 Chatbot Interaction
+### Chatbot Interaction
 ![Chatbot](assets/chatbot.png)
 
-### 📄 Resume Generation Page
+### Resume Generation Page
 ![Generate Resume](assets/gen_resume.png)
 
 ### 🔍 Internship Finder
 ![Get Internships](assets/get_internships.png)
 
-### 📊 ATS Score Result
+### ATS Score Result
 ![ATS Score](assets/ats_score.png)
 
-### 🖥️ Dashboard Overview
+### Dashboard Overview
 ![Dashboard](assets/dashboard.png)
 
-### 📈 Track Internships Applied
+### Track Internships Applied
 ![Track](assets/track.png)
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
-| Domain            | Technologies                                                 |
+| Domain | Technologies |
 |------------------|--------------------------------------------------------------|
-| **AI/ML**         | Python                                                       |
-| **NLP**           | SpaCy, NLTK, Hugging Face Transformers                       |
-| **Web Development** | React.js, Tailwind CSS, Node.js & Express, RESTful APIs  |
-| **Web Scraping**  | BeautifulSoup, Scrapy, Requests, Selenium                    |
-| **Database**      | MongoDB (with Mongoose ORM)                                  |
+| **AI/ML** | Python |
+| **NLP** | SpaCy, NLTK, Hugging Face Transformers |
+| **Web Development** | React.js, Tailwind CSS, Node.js & Express, RESTful APIs |
+| **Web Scraping** | BeautifulSoup, Scrapy, Requests, Selenium |
+| **Database** | MongoDB (with Mongoose ORM) |
 
 ---
 
-## 🔐 API Keys & Quota Management
+## API Keys & Quota Management
 
 > *Coming Soon*: Quota management and Gemini API key rotation
 
 ---
 
-## ✅ Sample Output
+## Sample Output
 
 - `Details_csv.csv`: Tabular data of top 10 internships
 - `internship_links.txt`: Direct links to apply
@@ -186,7 +186,7 @@ Make sure Python 3 is installed.
 
 ---
 
-## 📬 Contributing
+## Contributing
 
 Pull requests and issues are welcome!
 
@@ -196,20 +196,20 @@ Pull requests and issues are welcome!
 
 ---
 
-## 🧑‍💻 Developer Info
+## Developer Info
 
-**Team Members**: Aryan Bansal, Aryan Gupta, Arnav Bansal, Sanyam Jain  
+**Team Members**: Aryan Bansal, Aryan Gupta, Arnav Bansal, Sanyam Jain 
 **Organization**: DTU CSE
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 - [Internshala](https://internshala.com) – Internship source
 - [Google Gemini](https://ai.google.dev) – LLM APIs
