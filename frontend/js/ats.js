@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const suggestionsEl = document.getElementById('suggestions');
 
             // File input handling
+            const fileDisplay = document.getElementById('file-name-display');
+            if (fileDisplay) {
+                fileDisplay.addEventListener('click', () => {
+                    fileInput.click();
+                });
+            }
+
             fileInput.addEventListener('change', function() {
                 const placeholder = fileNameDisplay.querySelector('.file-placeholder');
                 if (this.files && this.files.length > 0) {
