@@ -171,7 +171,12 @@ Job Description: {job_description[:3000]}
 
 
 def check_eligible(link):
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Referer": "https://www.google.com/"
+    }
     try:
         response = requests.get(link, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
@@ -194,7 +199,12 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
     # Internshala URLs break if there are too many skills. Limit to top 3.
     skills_slug = ",".join(skills[:3]).replace(" ", "-").lower()
     url = f"https://internshala.com/internships/{skills_slug}-internship"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Referer": "https://www.google.com/"
+    }
     
     eligible_internships_for_scoring = []
 
