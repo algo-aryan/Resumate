@@ -1,146 +1,131 @@
 document.addEventListener('DOMContentLoaded', () => {
- const form = document.getElementById('resume-form');
- const fileInput = document.getElementById('resume');
- const submitButton = document.querySelector('.btn.btn-primary'); 
- const resultContainer = document.getElementById('result-container');
- const scoreEl = document.getElementById('score');
- const summaryEl = document.getElementById('summary');
- const strengthsEl = document.getElementById('strengths');
- const suggestionsEl = document.getElementById('suggestions');
- 
- const atsErrorDisplay = document.getElementById('atsErrorDisplay');
+            const form = document.getElementById('resume-form');
+            const fileInput = document.getElementById('resume');
+            const fileNameDisplay = document.getElementById('file-name-display');
+            const submitButton = document.querySelector('.btn.btn-primary');
+            const resultContainer = document.getElementById('result-container');
+            const errorContainer = document.getElementById('error-container');
+            const scoreEl = document.getElementById('score');
+            const summaryEl = document.getElementById('summary');
+            const strengthsEl = document.getElementById('strengths');
+            const suggestionsEl = document.getElementById('suggestions');
 
- form.addEventListener('submit', async (e) => {
- e.preventDefault();
+            // File input handling
+            fileInput.addEventListener('change', function() {
+                const placeholder = fileNameDisplay.querySelector('.file-placeholder');
+                if (this.files && this.files.length > 0) {
+                    placeholder.textContent = this.files[0].name;
+                    fileNameDisplay.classList.add('has-file');
+                } else {
+                    placeholder.textContent = 'No file chosen';
+                    fileNameDisplay.classList.remove('has-file');
+                }
+            });
 
- const file = fileInput.files[0];
- if (!file) {
- alert('Please select a resume file.'); 
- return;
- }
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
 
- // Show loading state
- submitButton.classList.add('loading');
- resultContainer.classList.add('d-none'); 
- 
- // Clear and hide previous ATS errors
- atsErrorDisplay.classList.add('hidden');
- atsErrorDisplay.innerText = '';
+                const file = fileInput.files[0];
+                if (!file) {
+                    showError('Please select a resume file.');
+                    return;
+                }
 
- const formData = new FormData();
- formData.append('resume', file);
- const jdText = document.getElementById('jobDescription').value;
- if (jdText) {
-     formData.append('jobDescription', jdText);
- }
+                // Show loading state
+                submitButton.classList.add('loading');
+                resultContainer.classList.add('hidden');
+                errorContainer.classList.add('hidden');
 
- try {
- const res = await fetch('https://resumate-ewtu.onrender.com/api/ats-score', {
- method: 'POST',
- body: formData
- });
+                const formData = new FormData();
+                formData.append('resume', file);
 
- if (!res.ok) { 
- const rawErrorText = await res.text();
- console.error('Raw Backend Error Response Text:', rawErrorText);
+                try {
+                    const response = await fetch('/api/ats-score', {
+                        method: 'POST',
+                        body: formData
+                    });
 
- let errorData = {};
- try {
- errorData = JSON.parse(rawErrorText);
- } catch (parseError) {
- console.error('Failed to parse backend error response as JSON:', parseError);
- errorData = { reason: rawErrorText }; 
- }
- 
- let userFacingMessage = 'Something went wrong while scoring the resume. Please try again.'; 
+                    const data = await response.json();
 
- if (res.status === 429) {
- userFacingMessage = 'AI assistant is currently unavailable due to quota limits. Please try again later.';
- } else {
- console.error('Backend Error for ATS score (parsed):', res.status, errorData);
- userFacingMessage = `An error occurred during ATS scoring: ${errorData.reason || 'Unknown error'}.`;
- }
- 
- atsErrorDisplay.innerText = userFacingMessage;
- atsErrorDisplay.classList.remove('hidden');
- 
- scoreEl.textContent = 'N/A';
- summaryEl.textContent = 'No data.';
- strengthsEl.innerHTML = '';
- suggestionsEl.innerHTML = '';
- 
- return; 
- }
+                    if (!response.ok) {
+                        throw new Error(data.reason || 'Something went wrong');
+                    }
 
- const data = await res.json();
+                    // Display results
+                    displayResults(data);
 
- let scoreValue = 'N/A';
- if (typeof data.score === 'number') { 
- scoreValue = data.score + '%';
- } else if (typeof data.score === 'string') { 
- scoreValue = data.score.replace(/%/g, '') + '%'; 
- }
- scoreEl.textContent = scoreValue;
- summaryEl.textContent = data.summary ?? 'No summary.';
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError(error.message || 'Network error. Please try again.');
+                } finally {
+                    submitButton.classList.remove('loading');
+                }
+            });
 
- let parsed = { strengths: [], suggestions: [] };
+            function displayResults(data) {
+                const score = data.score || 0;
+                scoreEl.textContent = score;
+                summaryEl.textContent = data.summary || 'No summary available.';
 
- try {
- if (data.raw && data.raw.includes('```json')) {
- const match = data.raw.match(/```json\s*([\s\S]*?)\s*```/);
- if (match && match[1]) parsed = JSON.parse(match[1]);
- } else if (data.raw) {
- parsed = JSON.parse(data.raw);
- }
- } catch (err) {
- console.warn('Gemini JSON parsing failed (for ATS suggestions):', err);
- strengthsEl.innerHTML = '<li class="list-group-item text-red-500">Could not parse strengths from AI response.</li>';
- suggestionsEl.innerHTML = '<li class="list-group-item text-red-500">Could not parse suggestions from AI response.</li>';
- resultContainer.classList.remove('d-none'); 
- return; 
- }
+                // Update score level
+                const scoreLevel = document.getElementById('score-level');
+                if (score >= 80) {
+                    scoreLevel.textContent = 'Excellent';
+                    scoreLevel.className = 'score-level excellent';
+                } else if (score >= 60) {
+                    scoreLevel.textContent = 'Good';
+                    scoreLevel.className = 'score-level good';
+                } else {
+                    scoreLevel.textContent = 'Needs Improvement';
+                    scoreLevel.className = 'score-level poor';
+                }
 
- strengthsEl.innerHTML = '';
- (parsed.strengths || []).forEach(item => {
- const li = document.createElement('li');
- li.className = 'list-group-item';
- li.textContent = item;
- strengthsEl.appendChild(li);
- });
+                // Display strengths
+                strengthsEl.innerHTML = '';
+                if (data.strengths && data.strengths.length > 0) {
+                    data.strengths.forEach(strength => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <div class="list-item-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <span>${strength}</span>
+                        `;
+                        strengthsEl.appendChild(li);
+                    });
+                } else {
+                    strengthsEl.innerHTML = '<li class="empty-state">No specific strengths identified.</li>';
+                }
 
- suggestionsEl.innerHTML = '';
- (parsed.suggestions || []).forEach(item => {
- const li = document.createElement('li');
- li.className = 'list-group-item';
- li.textContent = item;
- suggestionsEl.appendChild(li);
- });
+                // Display suggestions
+                suggestionsEl.innerHTML = '';
+                if (data.suggestions && data.suggestions.length > 0) {
+                    data.suggestions.forEach(suggestion => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <div class="list-item-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <span>${suggestion}</span>
+                        `;
+                        suggestionsEl.appendChild(li);
+                    });
+                } else {
+                    suggestionsEl.innerHTML = '<li class="empty-state">No specific suggestions at this time.</li>';
+                }
 
- resultContainer.classList.remove('d-none'); 
- } catch (err) {
- console.error('Frontend Error (Network/Unexpected for ATS):', err);
- atsErrorDisplay.innerText = 'Network error. Please check your internet connection and try again.';
- atsErrorDisplay.classList.remove('hidden');
- 
- scoreEl.textContent = 'N/A';
- summaryEl.textContent = 'No data.';
- strengthsEl.innerHTML = '';
- suggestionsEl.innerHTML = '';
- } finally {
- submitButton.classList.remove('loading');
- }
- });
+                resultContainer.classList.remove('hidden');
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+            }
 
- const resumeInput = document.getElementById('resume');
- const fileNameDisplay = document.getElementById('file-name-display');
-
- resumeInput.addEventListener('change', function () {
- if (this.files && this.files.length > 0) {
- fileNameDisplay.textContent = this.files[0].name;
- fileNameDisplay.classList.add('has-file');
- } else {
- fileNameDisplay.textContent = 'No file chosen';
- fileNameDisplay.classList.remove('has-file');
- }
- });
- });
+            function showError(message) {
+                document.getElementById('error-text').textContent = message;
+                errorContainer.classList.remove('hidden');
+                errorContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
