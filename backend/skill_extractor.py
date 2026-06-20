@@ -175,7 +175,7 @@ def check_eligible(link):
     try:
         response = requests.get(link, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
-        button = soup.find('button', class_='btn btn-primary top_apply_now_cta')
+        button = soup.find(lambda tag: tag.name == 'button' and tag.text and 'apply now' in tag.text.lower())
         if not button: return False
         text = button.get_text(strip=True).lower()
         return "apply now" in text and "login" not in text and "eligible" not in text
@@ -191,7 +191,8 @@ def convert_link(link):
     return link.replace("/internship/detail/", "/application/form/")
 
 def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limit=50):
-    skills_slug = ",".join(skills).replace(" ", "-").lower()
+    # Internshala URLs break if there are too many skills. Limit to top 3.
+    skills_slug = ",".join(skills[:3]).replace(" ", "-").lower()
     url = f"https://internshala.com/internships/{skills_slug}-internship"
     headers = {"User-Agent": "Mozilla/5.0"}
     
