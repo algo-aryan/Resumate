@@ -1,0 +1,37 @@
+# Node modules
+node_modules/
+backend/node_modules/
+
+# Python Virtual Environment
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+
+# NLTK Data
+backend/nltk_data/
+
+# Environment Variables
+.env
+backend/.env
+
+# User Uploads
+uploads/
+backend/uploads/
+
+# Generated Files
+*.csv
+*.txt
+*.pdf
+!backend/requirements.txt
+!README.md
+!LICENSE
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

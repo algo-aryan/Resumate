@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Builder | ResuMate</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    /* --- SAGE GREEN THEME STYLES --- */
+    :root {
+      /* Sage Green Color Palette */
+      --color-primary: #6B8E6B; /* sage green */
+      --color-primary-hover: #5B7A5B;
+      --color-secondary: #8FA8A3; /* soft teal */
+      --color-secondary-hover: #7D969B;
+      
+      --color-background: #F8FAF9; /* very light mint */
+      --color-surface: #FFFFFF; /* pure white */
+      --color-text: #2C3E32; /* dark sage */
+      --color-text-secondary: #5A6B5D; /* medium sage */
+      
+      --color-border: rgba(90, 107, 93, 0.2);
+      --color-border-light: rgba(90, 107, 93, 0.1);
+
+      /* Shadows */
+      --shadow-sm: 0 1px 3px rgba(44, 62, 50, 0.08), 0 1px 2px rgba(44, 62, 50, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(44, 62, 50, 0.08), 0 2px 4px -1px rgba(44, 62, 50, 0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .navbar {
+      background-color: var(--color-surface);
+      border-bottom: 1px solid var(--color-border-light);
+      padding: 0.75rem 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .navbar-container { max-width: 1600px; margin: 0 auto; }
+    .navbar-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; text-decoration: none; color: inherit; }
+    .logo-icon { color: var(--color-primary); }
+    .logo-text { font-weight: 600; font-size: 1.25rem; margin-left: 0.5rem; color: var(--color-text); }
+    .navbar-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-links { display: flex; gap: 1rem; }
+    .nav-link { text-decoration: none; color: var(--color-text-secondary); font-weight: 500; transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: var(--color-primary); }
+    .nav-divider { width: 1px; background-color: var(--color-border-light); height: 24px; }
+    .profile-link { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--color-text); }
+    .profile-avatar { width: 32px; height: 32px; border-radius: 50%; }
+
+    /* --- BUILDER PAGE SPECIFIC STYLES --- */
+    .builder-container {
+      display: flex;
+      flex-wrap: wrap; /* Allows wrapping on smaller screens */
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .form-section {
+      flex: 1;
+      min-width: 480px;
+    }
+
+    .preview-section {
+      flex: 1;
+      min-width: 480px;
+      position: sticky;
+      top: 2rem;
+      align-self: flex-start;
+    }
+
+    .form-block {
+      background-color: var(--color-surface);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--color-border-light);
+    }
+
+    .form-block h3 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--color-border-light);
+      padding-bottom: 0.75rem;
+      color: var(--color-primary);
+      font-size: 1.1rem;
+    }
+    
+    .input-group { margin-bottom: 1rem; }
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .input-group input,
+    .input-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-size: 1rem;
+      background-color: var(--color-background);
+      box-sizing: border-box;
+      color: var(--color-text);
+    }
+    .input-group input:focus,
+    .input-group textarea:focus {
+        border-color: var(--color-primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(107, 142, 107, 0.2);
+    }
+
+    .input-row { display: flex; gap: 1rem; }
+    .input-row > .input-group { flex: 1; }
+    
+    .dynamic-entry {
+        border: 1px solid var(--color-border-light);
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        background-color: var(--color-background);
+    }
+
+    .add-btn {
+      padding: 0.6rem 1rem;
+      border: none;
+      background-color: var(--color-primary);
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    .add-btn:hover { background-color: var(--color-primary-hover); }
+
+    .download-btn {
+        width: 100%;
+        padding: 0.8rem 1.5rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 0.5rem;
+        background-color: var(--color-secondary);
+    }
+    
+    .download-btn:hover { background-color: var(--color-secondary-hover); }
+    .download-btn:disabled { background-color: #a7b7a7; cursor: not-allowed; }
+
+    /* --- RESUME PREVIEW STYLES --- */
+    .resume-preview {
+      background-color: var(--color-surface);
+      border-radius: 8px;
+      padding: 1.5rem; /* Reduced padding */
+      box-shadow: var(--shadow-md);
+      color: var(--color-text);
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.3; /* Tighter line spacing */
+    }
+
+    .preview-header {
+      text-align: center;
+      border-bottom: 2px solid var(--color-text);
+      padding-bottom: 0.5rem;
+    }
+    
+    #preview-name { margin: 0; font-size: 2.2rem; font-weight: 700; color: var(--color-text); }
+    #preview-contact { margin: 0.4rem 0; font-size: 0.85rem; color: var(--color-text-secondary); }
+
+    .preview-section-title {
+      font-size: 1.1rem; /* Reduced font size */
+      font-weight: bold;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.25rem;
+      margin-top: 1.2rem; /* Reduced margin */
+      margin-bottom: 0.8rem; /* Reduced margin */
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-primary);
+    }
+
+    #preview-summary-content { color: var(--color-text-secondary); }
+    .preview-entry { margin-bottom: 0.8rem; }
+    .preview-entry h4, .preview-entry p { margin: 0; }
+    .preview-entry .title { font-weight: bold; font-size: 1rem; }
+    .preview-entry .subtitle { display: flex; justify-content: space-between; font-style: italic; color: var(--color-text-secondary); margin: 0.2rem 0; }
+    .preview-entry .description { font-size: 0.9rem; color: var(--color-text-secondary); padding-left: 1rem; list-style-position: outside; }
+    #preview-skills ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    #preview-skills li { background-color: rgba(107, 142, 107, 0.1); padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem; }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-inner">
+        <a href="#" class="logo">
+          <div class="logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
+            </svg>
+          </div>
+          <span class="logo-text">ResuMate</span>
+        </a>
+        <div class="navbar-right">
+          <div class="nav-links">
+            <a href="dashboard.html" class="nav-link">Home</a>
+          </div>
+          <div class="nav-divider"></div>
+          <div class="profile-section">
+            <a href="#" class="profile-link">
+              <img src="https://i.pravatar.cc/40" alt="Profile" class="profile-avatar">
+              <span>Profile</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="builder-container">
+      <section class="form-section">
+        <div class="form-block">
+            <h3>Personal Details</h3>
+            <div class="input-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="e.g., Jane Doe" value="Divyansh Sharma">
+            </div>
+            <div class="input-row">
+                <div class="input-group"><label for="email">Email Address</label><input type="email" id="email" placeholder="jane.doe@example.com" value="connectwithdivyansharma@gmail.com"></div>
+                <div class="input-group"><label for="phone">Phone Number</label><input type="tel" id="phone" placeholder="+91 12345 67890" value="9305441885"></div>
+            </div>
+            <div class="input-group"><label for="location">Location</label><input type="text" id="location" placeholder="New Delhi, India" value="C4 Janakpuri, New Delhi, 110058"></div>
+            <div class="input-row">
+                <div class="input-group"><label for="linkedin">LinkedIn</label><input type="url" id="linkedin" placeholder="linkedin.com/in/yourprofile" value="linkedin.com/in/divyansharma001"></div>
+                <div class="input-group"><label for="github">GitHub</label><input type="url" id="github" placeholder="github.com/yourusername" value="github.com/divyansharma001"></div>
+            </div>
+        </div>
+
+        <div class="form-block">
+            <h3>Summary</h3>
+            <div class="input-group">
+                <label for="summary">Professional Summary</label>
+                <textarea id="summary" rows="5" placeholder="A brief summary of your professional background, skills, and goals.">Highly skilled Full Stack Developer with proven experience in architecting and scaling critical cloud infrastructure and backend systems. Proficient in a wide range of technologies including React, Node.js, and AI/ML model integration. Demonstrated success in optimizing performance, leading technical initiatives, and delivering high-impact projects, highlighted by a 1st prize win in a major coding competition with over 15,000 participants.</textarea>
+            </div>
+        </div>
+
+        <div class="form-block">
+            <h3>Education</h3>
+            <div id="education-entries">
+                <div class="dynamic-entry">
+                    <div class="input-group"><label>School/University</label><input type="text" data-field="school" value="Maharaja Surajmal Institute of Technology"></div>
+                    <div class="input-row">
+                        <div class="input-group"><label>Degree</label><input type="text" data-field="degree" value="Bachelor of Technology in Information Technology"></div>
+                        <div class="input-group"><label>Dates</label><input type="text" data-field="dates" value="Sep. 2023 - Aug 2027"></div>
+                    </div>
+                    <div class="input-group"><label>GPA</label><input type="text" data-field="gpa" value="CGPA: 8.8"></div>
+                </div>
+            </div>
+            <button type="button" class="add-btn" id="add-education-btn">+ Add Education</button>
+        </div>
+        
+        <div class="form-block">
+            <h3>Work Experience</h3>
+            <div id="experience-entries">
+                <div class="dynamic-entry">
+                    <div class="input-group"><label>Job Title / Role</label><input type="text" data-field="role" value="Full Stack Development, Technical Ownership, Scalable Architecture"></div>
+                    <div class="input-row">
+                        <div class="input-group"><label>Company</label><input type="text" data-field="company" value="Modulus"></div>
+                        <div class="input-group"><label>Dates</label><input type="text" data-field="dates" value="Apr 2025 - Present"></div>
+                    </div>
+                    <div class="input-group"><label>Description (use '\n' for new lines)</label><textarea rows="4" data-field="description">Engineered and scaled critical cloud infrastructure to support a 10x user growth trajectory, achieving a landmark 500+ active users.\nOptimised platform performance by slashing database load with a Redis/Cloudflare dual-layer cache (82.15% cache hit ratio) and automated deployment cycles with a robust CI/CD pipeline (Github Actions).\nDeveloped advanced backend features including an AI-powered recommendation engine [Langchain, Google Gemini API] and a zero-touch automated booking workflow integrating Razorpay & Cal.com; all underpinned by a resilient background job scheduler designed to ensure low API latency during peak load.</textarea></div>
+                </div>
+                <div class="dynamic-entry">
+                    <div class="input-group"><label>Job Title / Role</label><input type="text" data-field="role" value="Backend Development, API Integration, System Reliability"></div>
+                    <div class="input-row">
+                        <div class="input-group"><label>Company</label><input type="text" data-field="company" value="Showtime"></div>
+                        <div class="input-group"><label>Dates</label><input type="text" data-field="dates" value="Feb 2025 - June 2025"></div>
+                    </div>
+                    <div class="input-group"><label>Description (use '\n' for new lines)</label><textarea rows="4" data-field="description">Integrated new third-party game provider API into the core platform, successfully expanding the company's service offerings and directly contributing to its B2B product expansion roadmap.\nRefactored and enhanced existing backend APIs to resolve critical reliability issues, improving overall system stability and ensuring consistent performance for partner gaming platforms under diverse traffic conditions.</textarea></div>
+                </div>
+            </div>
+            <button type="button" class="add-btn" id="add-experience-btn">+ Add Experience</button>
+        </div>
+
+        <div class="form-block">
+            <h3>Projects</h3>
+            <div id="project-entries">
+                <div class="dynamic-entry">
+                    <div class="input-group"><label>Project Title</label><input type="text" data-field="title" value="Safire | Next.js, Plasmo, Prisma, Puppeteer, RAG, Redis, Docker"></div>
+                    <div class="input-group"><label>Project Link</label><input type="url" data-field="link" value="https://github.com/divyansharma001/Safire"></div>
+                    <div class="input-group"><label>Description (use '\n' for new lines)</label><textarea rows="3" data-field="description">Won 1st Prize at Code Kshetra 2.0 (15k+ participants) by architecting an AI-powered harassment detection system that enhances user safety on social media using real-time, context-aware LLMs and a RAG architecture.\nEngineered a high-performance microservice backend using Node.js and MongoDB, integrating a custom load balancer and Redis caching to cut average detection latency by 60%, all deployed via containerized Docker instances.\nAutomated 100% of the evidence-gathering process by developing a Puppeteer and Handlebars service to generate tamper-proof PDFs, with secure asset storage on Cloudinary.\nDeveloped the complete user-facing platform, including a Next.js and Shadcn UI dashboard for analytics and a React/TypeScript Chrome Extension (Plasmo) for delivering real-time user alerts and evidence automation with Puppeteer.</textarea></div>
+                </div>
+            </div>
+            <button type="button" class="add-btn" id="add-project-btn">+ Add Project</button>
+        </div>
+        
+        <div class="form-block">
+            <h3>Skills</h3>
+            <div class="input-group"><label for="skills">Skills (comma-separated)</label><textarea id="skills" rows="3" placeholder="Python, JavaScript, React, SQL">TypeScript, JavaScript, Java, C/C++, SQL, HTML/CSS, React, Next.js, Redux, Tailwind CSS, Node.js, Express.js, Nginx, PM2</textarea></div>
+        </div>
+        
+        <div class="form-block">
+            <h3>Download Resume</h3>
+            <button type="button" class="download-btn" id="download-pdf-btn">Download PDF</button>
+        </div>
+      </section>
+
+      <section class="preview-section">
+        <div class="resume-preview" id="resume-preview"> <header class="preview-header">
+                <h2 id="preview-name">Divyansh Sharma</h2>
+                <div id="preview-contact">New Delhi, India &bull; +91 12345 67890 &bull; jane.doe@example.com</div>
+            </header>
+            <main>
+                <section id="preview-summary">
+                    <h3 class="preview-section-title">Summary</h3>
+                    <p id="preview-summary-content"></p>
+                </section>
+                <section id="preview-education"><h3 class="preview-section-title">Education</h3></section>
+                <section id="preview-experience"><h3 class="preview-section-title">Work Experience</h3></section>
+                <section id="preview-projects"><h3 class="preview-section-title">Projects</h3></section>
+                <section id="preview-skills"><h3 class="preview-section-title">Skills</h3></section>
+            </main>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- CORE FUNCTION TO UPDATE THE ENTIRE PREVIEW ---
+        function updatePreview() {
+            // 1. Update Personal Details
+            document.getElementById('preview-name').textContent = document.getElementById('name').value || 'Your Name';
+            const contactDetails = ['location', 'phone', 'email', 'linkedin', 'github']
+                .map(id => document.getElementById(id).value.trim())
+                .filter(Boolean)
+                .join(' &bull; ');
+            document.getElementById('preview-contact').innerHTML = contactDetails;
+
+            // 2. Update Summary
+            const summaryText = document.getElementById('summary').value;
+            const summaryContent = document.getElementById('preview-summary-content');
+            if (summaryText) {
+                summaryContent.textContent = summaryText;
+                summaryContent.style.fontStyle = 'normal';
+            } else {
+                summaryContent.textContent = 'Your professional summary will appear here.';
+                summaryContent.style.fontStyle = 'italic';
+            }
+
+            // 3. Update Skills
+            const skillsText = document.getElementById('skills').value;
+            const skillsContainer = document.getElementById('preview-skills');
+            skillsContainer.innerHTML = '<h3 class="preview-section-title">Skills</h3>';
+            if (skillsText) {
+                const skillsList = document.createElement('ul');
+                skillsText.split(',').forEach(skill => {
+                    const trimmedSkill = skill.trim();
+                    if (trimmedSkill) {
+                        const li = document.createElement('li');
+                        li.textContent = trimmedSkill;
+                        skillsList.appendChild(li);
+                    }
+                });
+                skillsContainer.appendChild(skillsList);
+            }
+
+            // 4. Update Dynamic Sections
+            updateDynamicSection('education');
+            updateDynamicSection('experience');
+            updateDynamicSection('project', 'projects');
+        }
+
+        // --- RENDERER FOR DYNAMIC SECTIONS (EDUCATION, EXPERIENCE, ETC.) ---
+        function updateDynamicSection(sectionId, previewId = sectionId) {
+            const entriesContainer = document.getElementById(`${sectionId}-entries`);
+            const previewContainer = document.getElementById(`preview-${previewId}`);
+            
+            const titleCaseId = previewId.charAt(0).toUpperCase() + previewId.slice(1).replace('-', ' ');
+            previewContainer.innerHTML = `<h3 class="preview-section-title">${titleCaseId}</h3>`;
+
+            entriesContainer.querySelectorAll('.dynamic-entry').forEach(entry => {
+                const fields = {};
+                entry.querySelectorAll('[data-field]').forEach(input => {
+                    fields[input.dataset.field] = input.value;
+                });
+                
+                const entryHtml = createEntryHtml(sectionId, fields);
+                if (entryHtml) previewContainer.insertAdjacentHTML('beforeend', entryHtml);
+            });
+        }
+        
+        // --- HTML TEMPLATE GENERATOR FOR PREVIEW ENTRIES ---
+        function createEntryHtml(sectionId, f) {
+            if (sectionId === 'education' && (f.school || f.degree)) {
+                return `<div class="preview-entry">
+                            <p class="title">${f.degree || 'Degree'}</p>
+                            <div class="subtitle">
+                                <span>${f.school || 'School/University'}</span>
+                                <span>${f.dates || 'Dates'}</span>
+                            </div>
+                            ${f.gpa ? `<p><strong>GPA:</strong> ${f.gpa}</p>` : ''}
+                        </div>`;
+            }
+            if (sectionId === 'experience' && (f.role || f.company)) {
+                return `<div class="preview-entry">
+                            <p class="title">${f.role || 'Job Title'}</p>
+                            <div class="subtitle">
+                                <span>${f.company || 'Company'}</span>
+                                <span>${f.dates || 'Dates'}</span>
+                            </div>
+                            ${f.description ? `<ul class="description">${f.description.split('\\n').filter(line => line.trim()).map(line => `<li>${line.trim()}</li>`).join('')}</ul>` : ''}
+                        </div>`;
+            }
+            if (sectionId === 'project' && f.title) {
+                return `<div class="preview-entry">
+                            <p class="title">${f.title}</p>
+                            <div class="subtitle">
+                                <span>${f.link ? `<a href="${f.link}" target="_blank">${f.link}</a>` : ''}</span>
+                                <span></span>
+                            </div>
+                            ${f.description ? `<ul class="description">${f.description.split('\\n').filter(line => line.trim()).map(line => `<li>${line.trim()}</li>`).join('')}</ul>` : ''}
+                        </div>`;
+            }
+            return '';
+        }
+
+        // --- FORM BLOCK GENERATOR FOR DYNAMIC ENTRIES ---
+        function addDynamicEntry(sectionId) {
+            const container = document.getElementById(`${sectionId}-entries`);
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'dynamic-entry';
+            let formHtml = '';
+
+            if (sectionId === 'education') {
+                formHtml = `<div class="input-group"><label>School/University</label><input type="text" data-field="school"></div>
+                            <div class="input-row">
+                                <div class="input-group"><label>Degree</label><input type="text" data-field="degree"></div>
+                                <div class="input-group"><label>Dates</label><input type="text" data-field="dates"></div>
+                            </div>
+                            <div class="input-group"><label>GPA</label><input type="text" data-field="gpa"></div>`;
+            } else if (sectionId === 'experience') {
+                formHtml = `<div class="input-group"><label>Job Title / Role</label><input type="text" data-field="role"></div>
+                            <div class="input-row">
+                                <div class="input-group"><label>Company</label><input type="text" data-field="company"></div>
+                                <div class="input-group"><label>Dates</label><input type="text" data-field="dates"></div>
+                            </div>
+                            <div class="input-group"><label>Description (use '\\n' for new lines)</label><textarea rows="4" data-field="description"></textarea></div>`;
+            } else if (sectionId === 'project') {
+                formHtml = `<div class="input-group"><label>Project Title</label><input type="text" data-field="title"></div>
+                            <div class="input-group"><label>Project Link</label><input type="url" data-field="link"></div>
+                            <div class="input-group"><label>Description (use '\\n' for new lines)</label><textarea rows="3" data-field="description"></textarea></div>`;
+            }
+            entryDiv.innerHTML = formHtml;
+            container.appendChild(entryDiv);
+            entryDiv.querySelector('input, textarea')?.focus();
+        }
+
+        // --- EVENT LISTENERS ---
+        document.querySelector('.form-section').addEventListener('input', updatePreview);
+
+        document.getElementById('add-education-btn').addEventListener('click', () => addDynamicEntry('education'));
+        document.getElementById('add-experience-btn').addEventListener('click', () => addDynamicEntry('experience'));
+        document.getElementById('add-project-btn').addEventListener('click', () => addDynamicEntry('project'));
+
+        // --- PDF Download Logic ---
+        document.getElementById('download-pdf-btn').addEventListener('click', () => {
+            const downloadBtn = document.getElementById('download-pdf-btn');
+            const resumePreview = document.getElementById('resume-preview');
+            const { jsPDF } = window.jspdf;
+
+            downloadBtn.textContent = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            html2canvas(resumePreview, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const margin = 10;
+
+                const pdfPageWidth = pdf.internal.pageSize.getWidth();
+                const pdfPageHeight = pdf.internal.pageSize.getHeight();
+                
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasHeight / canvasWidth;
+
+                let imgWidth = pdfPageWidth - (margin * 2);
+                let imgHeight = imgWidth * ratio;
+
+                if (imgHeight > (pdfPageHeight - (margin * 2))) {
+                    imgHeight = pdfPageHeight - (margin * 2);
+                    imgWidth = imgHeight / ratio;
+                }
+
+                const xPosition = (pdfPageWidth - imgWidth) / 2;
+                const yPosition = margin;
+
+                pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
+                pdf.save("resume.pdf");
+
+                downloadBtn.textContent = 'Download PDF';
+                downloadBtn.disabled = false;
+            });
+        });
+
+
+        // --- INITIAL SETUP ---
+        updatePreview();
+    });
+  </script>
+</body>
+</html>
