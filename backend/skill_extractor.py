@@ -271,16 +271,18 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
             log_to_csv("ATS Scored", f"{job_data['title']} - ATS: {ats_score}")
 
         except (ResourceExhausted, GoogleAPIError, Aborted) as e:
-            # If a Gemini error occurred during scoring, re-raise it
-            # The main block will catch it and format the output for Node.js
+            # If a Gemini error occurred during scoring, gracefully handle it
             log_to_csv("ATS Scoring Error (Gemini API)", f"Error for {job_data['title']}: {str(e)}")
-            raise # Re-raise so the main block catches it
+            sys.stderr.write(f"ATS Scoring Quota Reached for {job_data['title']}: {str(e)}\n")
+            job_data["ats_score"] = "N/A"
+            final_scored_internships.append(job_data)
+            continue
         except Exception as e:
             log_to_csv("ATS Scoring Error (Other)", f"Error for {job_data['title']}: {str(e)}")
             sys.stderr.write(f"ATS Scoring Error (Other) for {job_data['title']}: {str(e)}\n")
-            job_data["ats_score"] = 0
+            job_data["ats_score"] = "N/A"
             final_scored_internships.append(job_data)
-            continue # Continue to next job if non-Gemini error
+            continue
 
     def get_ats_value(ats):
         if ats is None:
