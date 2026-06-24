@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
  const filterIcon = document.getElementById('filter-icon');
  const locationFilter = document.getElementById('locationFilter');
  const minStipendInput = document.getElementById('minStipend');
- const minAtsInput = document.getElementById('minAts');
  const applyFiltersBtn = document.getElementById('applyFiltersBtn');
  const resetFiltersBtn = document.getElementById('resetFiltersBtn');
  
@@ -130,32 +129,16 @@ document.addEventListener("DOMContentLoaded", function () {
  internshipsToRender.forEach(job => {
  const matchDiv = document.createElement("div");
  matchDiv.className = "card";
- 
- const atsScore = job.ats !== 'N/A' ? parseInt(job.ats) : 0;
- let atsSpanClass = 'ats-none';
- 
- if (atsScore >= 80) {
- atsSpanClass = 'ats-high';
- matchDiv.classList.add('card-ats-high');
- } else if (atsScore >= 45) {
- atsSpanClass = 'ats-medium';
- matchDiv.classList.add('card-ats-medium');
- } else {
- atsSpanClass = 'ats-low';
- matchDiv.classList.add('card-ats-low');
- }
- 
  matchDiv.innerHTML = `
  <h4>${job.title}</h4>
  <p><strong>Company:</strong> ${job.company || 'N/A'}</p>
  <p><strong>📍 Location:</strong> ${job.location}</p>
  <p><strong>💰 Stipend:</strong> ${job.stipend}</p>
- <p><strong>ATS Match:</strong> <span class="${atsSpanClass}">${job.ats}%</span></p>
  <div class="card-links">
  <a href="${job.link}" target="_blank" class="card-link">View Internship</a>
  <a href="${job.apply}" target="_blank" class="card-link apply">Apply Now</a>
  </div>
- <button class="track-btn" data-title="${job.title}" data-company="${job.company}" data-link="${job.link}" data-ats="${job.ats}">📌 Track this</button>
+ <button class="track-btn" data-title="${job.title}" data-company="${job.company}" data-link="${job.link}">📌 Track this</button>
  `;
  
  internshipResults.appendChild(matchDiv);
@@ -166,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function () {
  title: this.dataset.title,
  company: this.dataset.company,
  link: this.dataset.link,
- ats: this.dataset.ats,
  userId: localStorage.getItem("userId") || ""
  };
  
@@ -208,19 +190,16 @@ document.addEventListener("DOMContentLoaded", function () {
  function applyFilters() {
  const locationValue = locationFilter.value.toLowerCase();
  const minStipend = parseInt(minStipendInput.value) || 0;
- const minATS = parseInt(minAtsInput.value) || 0;
 
  const filteredInternships = allInternships.filter(job => {
  const jobLocation = job.location ? job.location.toLowerCase() : '';
  const jobStipendMatch = job.stipend ? job.stipend.match(/[\d,]+/) : null;
  const jobStipend = jobStipendMatch ? parseInt(jobStipendMatch[0].replace(/,/g, '')) : 0;
- const jobATS = job.ats !== 'N/A' ? parseInt(job.ats) : 0;
 
  const matchLocation = !locationValue || jobLocation.includes(locationValue);
  const matchStipend = jobStipend >= minStipend;
- const matchATS = jobATS >= minATS;
  
- return matchLocation && matchStipend && matchATS;
+ return matchLocation && matchStipend;
  });
 
  renderInternships(filteredInternships);
@@ -229,7 +208,6 @@ document.addEventListener("DOMContentLoaded", function () {
  function resetFilters() {
  locationFilter.value = '';
  minStipendInput.value = '';
- minAtsInput.value = '';
  renderInternships(allInternships);
  }
  });

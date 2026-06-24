@@ -15,8 +15,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from './models/User.js'; // adjust the path if it's different
 import TrackedInternship from './models/TrackedInternship.js';
-import { fetchGitHubProfile } from './github/tempFile.js';
-import atsScoreRoute from './routes/atsScore.js';
 import resumeRoutes from './routes/resume.js';dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +34,7 @@ app.use('/api', applicationRoutes);
 
 // Track Internship Route
 app.post('/api/track-internship', async (req, res) => {
- const { userId, title, company, link, ats } = req.body;
+ const { userId, title, company, link } = req.body;
 
  if (!userId || !title || !company || !link) {
  return res.status(400).json({ message: "Missing required fields" });
@@ -47,8 +45,7 @@ app.post('/api/track-internship', async (req, res) => {
  userId,
  title,
  company,
- link,
- ats
+ link
  });
 
  await newTrack.save();
@@ -120,7 +117,7 @@ app.get('/api/import/github/:username', async (req, res) => {
  }
 });
 
-app.use('/api', atsScoreRoute);
+
 
 
 // Serve static files from the frontend directory

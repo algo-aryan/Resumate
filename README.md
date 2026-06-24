@@ -1,10 +1,10 @@
 # ResuMate
 
-ResuMate is a simple web platform that helps students format their resumes, track their applications, and find relevant internships. It uses Google's Gemini models to extract information from PDFs and provide basic ATS feedback.
+ResuMate is a simple web platform that helps students format their resumes, track their applications, and find relevant internships. It uses Google's Gemini models to extract information from PDFs.
 
 ## Features
 
-- **ATS Resume Scoring**: Upload your PDF resume to receive a fast, straightforward score and feedback based on common Applicant Tracking System criteria.
+
 - **Resume Builder**: A simple tool to compile your experiences and skills into a clean, well-formatted resume.
 - **Internship Matcher**: Automatically extracts your top skills from your resume and scrapes Internshala to find the most relevant current internships.
 - **Application Tracker**: A lightweight dashboard to keep track of the jobs and internships you've applied to in one place.
@@ -16,7 +16,7 @@ ResuMate/
 ├── backend/
 │   ├── config/              # MongoDB connection
 │   ├── models/              # Mongoose schemas (User, TrackedInternship)
-│   ├── routes/              # Express API routes (atsScore.js, auth.js, etc.)
+│   ├── routes/              # Express API routes (auth.js, resume.js, etc.)
 │   ├── uploads/             # Temporary storage for PDF parsing
 │   ├── server.js            # Main Node.js server entry point
 │   ├── resume.py            # Python script for AI resume building
@@ -24,7 +24,7 @@ ResuMate/
 ├── frontend/
 │   ├── css/                 # Stylesheets
 │   ├── js/                  # Client-side JavaScript
-│   ├── ats.html             # ATS Score page
+
 │   ├── dashboard.html       # Main user dashboard
 │   ├── index.html           # Landing page
 │   ├── login.html           # Login page
