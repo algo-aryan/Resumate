@@ -8,6 +8,7 @@ const applicationSchema = new mongoose.Schema({
   stipend: String,
   link: String,
   apply: String,
+  ats: String,
   status: {
     type: String,
     enum: ['Applied', 'Interview', 'Selected', 'Rejected'],

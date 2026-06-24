@@ -27,7 +27,21 @@ const userId = localStorage.getItem("userId");
  const div = document.createElement("div");
  div.className = "card";
 
+ const atsScoreValue = job.ats !== null ? parseInt(job.ats) : -1;
+ const atsScoreText = atsScoreValue !== -1 ? `${atsScoreValue}%` : "N/A";
+ let atsClass = 'ats-none';
 
+ if (atsScoreValue >= 70) {
+ atsClass = 'ats-high';
+ div.classList.add('card-ats-high');
+ } else if (atsScoreValue >= 40) {
+ atsClass = 'ats-medium';
+ div.classList.add('card-ats-medium');
+ } else if (atsScoreValue !== -1) {
+ atsClass = 'ats-low';
+ div.classList.add('card-ats-low');
+ }
+ 
  const trackedDate = new Date(job.trackedAt).toLocaleDateString('en-US', {
  year: 'numeric', month: 'long', day: 'numeric'
  });
@@ -36,6 +50,7 @@ const userId = localStorage.getItem("userId");
  <div class="card-content">
  <h4>${job.title}</h4>
  <p><strong>Company:</strong> ${job.company}</p>
+ <p><strong>ATS Match:</strong> <span class="${atsClass}">${atsScoreText}</span></p>
  <p><a href="${job.link}" target="_blank" class="card-link">🔗 View Internship</a></p>
  <p class="tracked-date">Tracked on: ${trackedDate}</p>
  </div>

@@ -34,7 +34,7 @@ app.use('/api', applicationRoutes);
 
 // Track Internship Route
 app.post('/api/track-internship', async (req, res) => {
- const { userId, title, company, link } = req.body;
+ const { userId, title, company, link, ats } = req.body;
 
  if (!userId || !title || !company || !link) {
  return res.status(400).json({ message: "Missing required fields" });
@@ -45,7 +45,8 @@ app.post('/api/track-internship', async (req, res) => {
  userId,
  title,
  company,
- link
+ link,
+ ats
  });
 
  await newTrack.save();

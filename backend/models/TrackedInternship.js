@@ -9,6 +9,7 @@ const TrackedInternshipSchema = new mongoose.Schema({
   title: String,
   company: String,
   link: String,
+  ats: String,
   trackedAt: {
     type: Date,
     default: Date.now

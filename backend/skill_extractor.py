@@ -114,6 +114,61 @@ def extract_skills(text):
             text_clean = re.sub(pattern, '', text_clean)
     return list(found_skills)
 
+def get_ats_score(resume_text, job_description):
+    # Modified: Reduced retries from 5 to 2
+    retries = 2
+    base_delay = 5
+    model_name = "gemini-2.0-flash"
+
+    for attempt in range(retries):
+        try:
+            prompt = f"""
+You are an ATS. Rate the resume for the job from 0–100. Return only a number.
+
+Resume: {resume_text[:3000]}
+Job Description: {job_description[:3000]}
+"""
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            response = model.generate_content(prompt)
+            
+            score_match = re.findall(r'\d+', response.text)
+            if score_match:
+                score = int(score_match[0])
+            else:
+                score = 0
+            return score
+
+        except (ResourceExhausted, Aborted) as e: # Catch specific quota errors
+            error_message = str(e)
+            sys.stderr.write(f"❌ Gemini scoring error (Attempt {attempt+1}/{retries}): {error_message}\n")
+
+            if "429 You exceeded your current quota" in error_message or isinstance(e, ResourceExhausted):
+                match = re.search(r"retry_delay {\s+seconds: (\d+)", error_message)
+                if match:
+                    delay = int(match.group(1))
+                else:
+                    delay = base_delay * (2 ** attempt)
+
+                sys.stderr.write(f"Retrying in {delay} seconds due to quota limit...\n")
+                if attempt < retries - 1: # Only sleep if there are more retries left
+                    time.sleep(delay)
+                else: # If this is the last attempt and it failed, re-raise
+                    raise # Re-raise if retries exhausted
+            else: # Other GoogleAPIError types might not be retriable for this function
+                sys.stderr.write(f"Non-quota related ResourceExhausted/Aborted error encountered, stopping retries: {error_message}\n")
+                raise # Re-raise if not a quota error or something we handle here
+        except GoogleAPIError as e: # Catch other general API errors
+            sys.stderr.write(f"Non-quota related GoogleAPIError encountered, stopping retries: {str(e)}\n")
+            raise # Re-raise other API errors
+        except Exception as e:
+            sys.stderr.write(f"❌ Unexpected error in get_ats_score (Attempt {attempt+1}/{retries}): {str(e)}\n")
+            raise # Re-raise other unexpected errors
+
+    # If loop finishes without returning, it means retries were exhausted
+    # Due to quota or other unhandled errors that were re-raised.
+    sys.stderr.write(f"❌ Gemini scoring failed after {retries} attempts due to persistent quota limits or other errors.\n")
+    raise ResourceExhausted("Gemini API quota exceeded after multiple retries.")
+
 
 def check_eligible(link):
     headers = {
@@ -178,9 +233,10 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
                         "company": company,
                         "location": location,
                         "stipend": stipend,
-                        "link": link
+                        "link": link,
+                        "ats_score": None
                     })
-                    # Break if we have enough eligible internships
+                    # Break if we have enough eligible internships to score
                     if len(eligible_internships_for_scoring) >= num_to_score:
                         break
                 else:
@@ -196,6 +252,48 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
         sys.stderr.write(f"Scraping Failed for Internshala URL: {e}\n")
         return []
 
+    final_scored_internships = []
+    sys.stderr.write(f"\n--- Fetching Job Descriptions and ATS Scores for Top {min(len(eligible_internships_for_scoring), num_to_score)} Internships ---\n")
+
+    for i, job_data in enumerate(eligible_internships_for_scoring[:num_to_score]):
+        try:
+            sys.stderr.write(f"Processing ATS for: {job_data['title']} at {job_data['company']} ({i+1}/{min(len(eligible_internships_for_scoring), num_to_score)})\n")
+            
+            job_resp = requests.get(job_data["link"], headers=headers, timeout=10)
+            job_soup = BeautifulSoup(job_resp.text, "html.parser")
+            jd_div = job_soup.find("div", class_="internship_details")
+            job_desc = jd_div.get_text(strip=True) if jd_div else ""
+
+            ats_score = get_ats_score(resume_text, job_desc) # This can now raise exceptions
+            
+            job_data["ats_score"] = ats_score
+            final_scored_internships.append(job_data)
+            log_to_csv("ATS Scored", f"{job_data['title']} - ATS: {ats_score}")
+
+        except (ResourceExhausted, GoogleAPIError, Aborted) as e:
+            # If a Gemini error occurred during scoring, gracefully handle it
+            log_to_csv("ATS Scoring Error (Gemini API)", f"Error for {job_data['title']}: {str(e)}")
+            sys.stderr.write(f"ATS Scoring Quota Reached for {job_data['title']}: {str(e)}\n")
+            job_data["ats_score"] = "N/A"
+            final_scored_internships.append(job_data)
+            continue
+        except Exception as e:
+            log_to_csv("ATS Scoring Error (Other)", f"Error for {job_data['title']}: {str(e)}")
+            sys.stderr.write(f"ATS Scoring Error (Other) for {job_data['title']}: {str(e)}\n")
+            job_data["ats_score"] = "N/A"
+            final_scored_internships.append(job_data)
+            continue
+
+    def get_ats_value(ats):
+        if ats is None:
+            return 0.0
+        if isinstance(ats, (int, float)):
+            return float(ats)
+        try:
+            return float(str(ats).replace('%', '').strip()) # Ensure it's a string before replace
+        except:
+            return 0.0
+
     def get_stipend_value(stipend_str):
         if not stipend_str or "Unpaid" in stipend_str:
             return 0
@@ -207,13 +305,16 @@ def scrape_internshala(skills, resume_text, num_to_score=10, initial_scrape_limi
         except:
             return 0
 
-    sorted_by_stipend = sorted(
-        eligible_internships_for_scoring[:num_to_score],
-        key=lambda x: get_stipend_value(x.get('stipend', '')),
+    sorted_by_ats_then_stipend = sorted(
+        final_scored_internships,
+        key=lambda x: (
+            get_ats_value(x.get('ats_score')), # Use .get for safety
+            get_stipend_value(x.get('stipend', '')) # Use .get for safety
+        ),
         reverse=True
     )
     
-    return sorted_by_stipend
+    return sorted_by_ats_then_stipend
 
 def save_links_to_txt(internships, filenames=["internship_links.txt", "internship_links_apply.txt"]):
     with open(filenames[0], "w") as f:
@@ -276,7 +377,8 @@ if __name__ == "__main__":
                 "location": job["location"],
                 "stipend": job["stipend"],
                 "link": job["link"],
-                "apply": job_apply_link
+                "apply": job_apply_link,
+                "ats": job.get('ats_score', 'N/A')
             })
 
         save_links_to_txt(results_sorted[:top_n])
